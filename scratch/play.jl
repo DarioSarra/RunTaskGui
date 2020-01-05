@@ -1,4 +1,4 @@
-x = Flipping_Task(1, "new", "evening", 11, 1, true, false, false)
+x = Flipping_Task(1, "bho", "evening", 11, 1, true, false, true)
 x.filename
 ser = LibSerialPort.open(Box_dict[x.box], 115200)
 port = SerialPort(Box_dict[x.box])
@@ -17,8 +17,8 @@ if bytesavailable(ser) > 0
 end
 
 ####
-@async run_task(x)
-
+t = @spawnat 2 run_task(x)
+fetch(t)
 replace("manf\0\0", "\0" => "")
 
 function routine(name, check)

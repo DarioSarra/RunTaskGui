@@ -3,13 +3,6 @@ function session_specs(FT::Flipping_Task)
     [string(FT.box),string(FT.protocol),string(Int64(FT.barrier)),string(Int64(FT.stimulation),string(Int64(FT.pokestracking)))]
 end
 
-function write_row(m,f)
-    stream_file = open(f,"a")
-    #println(stream_file,m)
-    print(stream_file,m)
-    close(stream_file)
-end
-
 function run_task(FT::Flipping_Task)
     if FT.running
         port = SerialPort(Box_dict[x.box])
@@ -25,7 +18,6 @@ function run_task(FT::Flipping_Task)
             write(port,spec)
             sleep(0.5)
         end
-        start = time()
         @async begin
             while FT.running
               if bytesavailable(port) > 0
@@ -33,11 +25,11 @@ function run_task(FT::Flipping_Task)
                  if occursin("-666",m)
                      println("All is well in $(FT.box)")
                  end
-                write_row(m,FT.filename)
+                open(FT.filename, "a") do io
+                    print(io, m)
+                end
               end
-              if time() - start > 20 #to change in while FT.running
-                  FT.running = false
-              end
+              sleep(0.001)
             end
             close(port)
             println("Box $(FT.box) port closed")

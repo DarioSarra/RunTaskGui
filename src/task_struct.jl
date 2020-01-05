@@ -14,14 +14,18 @@ mutable struct Flipping_Task
     running::Bool
 end
 
-function Flipping_Task(box::Int64,mouse::String,daily_session::String,weight::Int64,prot::Int64,barr::Bool,stim::Bool, p_trk::Bool; dir = pwd(), run = true)
+const default_dir = joinpath(@__DIR__, "..", "raw_data") ##filepath default and goes up one
+
+function Flipping_Task(box::Int64,mouse::String,daily_session::String,weight::Int64,prot::Int64,barr::Bool,stim::Bool, p_trk::Bool;
+    dir = default_dir, run = true)
+
     d = replace(string(Dates.today()), "-"=>"")
     session =  mouse*"_"*d
     i = 97
-    filename = joinpath(dir,"raw_data",session*Char(i)*".txt")
+    filename = joinpath(dir,session*Char(i)*".txt")
     while ispath(filename)
         i = i+1
-        filename = joinpath(dir,"raw_data",session*Char(i)*".txt")
+        filename = joinpath(dir,session*Char(i)*".txt")
     end
     Flipping_Task(box,mouse,d,daily_session,filename,weight,prot,barr,stim,p_trk,run)
 end
