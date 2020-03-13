@@ -1,6 +1,6 @@
 Box_dict = Dict(1=>"/dev/ttyACM0")
 
-mutable struct Flipping_Task
+struct Flipping_Task
     box::Int64
     mouseID::String
     day::String
@@ -11,13 +11,12 @@ mutable struct Flipping_Task
     barrier::Bool
     stimulation::Bool
     pokestracking::Bool
-    running::Bool
 end
 
 const default_dir = joinpath(@__DIR__, "..", "raw_data") ##filepath default and goes up one
 
 function Flipping_Task(box::Int64,mouse::String,daily_session::String,weight::Int64,prot::Int64,barr::Bool,stim::Bool, p_trk::Bool;
-    dir = default_dir, run = true)
+    dir = default_dir)
 
     d = replace(string(Dates.today()), "-"=>"")
     session =  mouse*"_"*d
@@ -27,5 +26,5 @@ function Flipping_Task(box::Int64,mouse::String,daily_session::String,weight::In
         i = i+1
         filename = joinpath(dir,session*Char(i)*".txt")
     end
-    Flipping_Task(box,mouse,d,daily_session,filename,weight,prot,barr,stim,p_trk,run)
+    Flipping_Task(box,mouse,d,daily_session,filename,weight,prot,barr,stim,p_trk)
 end
