@@ -1,97 +1,63 @@
-x = Flipping_Task(1, "bho", "evening", 11, 1, true, false, true)
-x.filename
-ser = LibSerialPort.open(Box_dict[x.box], 115200)
-port = SerialPort(Box_dict[x.box])
-port.open
-open(port)
-set_speed(port,115200)
-port.open
+port = SerialPort(Box_dict[1])
+file = "/home/beatriz/Documents/Julia/modules1/RunTaskGui/src/../raw_data/test.txt"
+
+if !port.open
+    open(port)
+    set_speed(port,115200)
+    println("Opening Port")
+end
+
+read_m(port,file)
+send_m(port,"0",file)
+read_m(port,file)
 close(port)
-port.open
-write(ser,session_specs(x))
-LibSerialPort.close(ser)
-###
-if bytesavailable(ser) > 0
-  m = readuntil(ser, '\n', 0.5)
-  write_row(m,x.filename)
-end
 
-####
-t = @spawnat 2 run_task(x)
-fetch(t)
-replace("manf\0\0", "\0" => "")
-
-function routine(name, check)
-    f = joinpath(pwd(), "test", name * ".txt")
-    start = time()
-    i = 1
-    while check
-        t = (time() - start) / 3
-        if  t > i
-            i = i + 1
-            stream_file = open(f, "a")
-            println(stream_file, string(t))
-            close(stream_file)
-        end
-        if time() - start > 10
-            check = false
-        end
+function read_m(port,file)
+    m = readuntil(port, '\n', 0.5)
+    open(file, "a") do io
+        print(io, m)
     end
+    sleep(0.5)
+    return(m)
 end
-##
 
-const files = Channel{String}(4)
-const status = Channel{Bool}(4)
-put!(files,"a")
-put!(files,"b")
+function send_m(port,what,file)
+    write(port,"<"*what*">")
+    sleep(0.5)
+end
 
-function do_work()
-    for j in files
-        routine(j,true)
+
+
+
+m = readuntil(port, '\n', 0.5)
+open(file, "a") do io
+    print(io, m)
+end
+
+println("Wait")
+sleep(2.5)
+write(port,"<60>")
+if bytesavailable(port) > 0
+  m = readuntil(port, '\n', 0.5)
+end
+for spec in session_specs(FT)
+    #write(port,"<"*spec*">")
+    write(port,testo)
+    sleep(0.5)
+end
+@async begin
+    while boxesrunning[FT.box]
+      if bytesavailable(port) > 0
+        m = readuntil(port, '\n', 0.5)
+         if occursin("-666",m)
+             println("All is well in $(FT.box)")
+         end
+        open(FT.filename, "a") do io
+            print(io, m)
+        end
+      end
+      sleep(0.001)
     end
+    close(port)
+    println("Box $(FT.box) port closed")
 end
-
-for i in 1:4 # start 4 tasks to process requests in parallel
-   @async do_work()
-end
-
-
-F[2] = false
-routine("r",F[1])
-this = Task(rout("h",F[1]))
-schedule(this)
-2+2
-################
-const jobs = Channel{Int}(32);
-
-const results = Channel{Tuple}(32);
-
-function do_work()
-           for job_id in jobs
-               exec_time = rand()
-               sleep(exec_time)                # simulates elapsed time doing actual work
-                                               # typically performed externally.
-               put!(results, (job_id, exec_time))
-           end
-       end;
-
-function make_jobs(n)
-           for i in 1:n
-               put!(jobs, i)
-           end
-       end;
-
-n = 12;
-
-@async make_jobs(n);
-
-for i in 1:4 # start 4 tasks to process requests in parallel
-   @async do_work()
-end
-
-@elapsed while n > 0 # print out results
-   job_id, exec_time = take!(results)
-   println("$job_id finished in $(round(exec_time; digits=2)) seconds")
-   global n = n - 1
-end
-################
