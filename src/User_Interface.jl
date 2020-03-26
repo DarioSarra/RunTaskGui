@@ -18,8 +18,8 @@ function define_task(;Rack=1)
         &Weight,
         &BoxN,
         &Prwd1,
-        &Prwd2,
         &Psw1,
+        &Prwd2,
         &Psw2,
         &Delta,
         &Barrier,
@@ -33,8 +33,8 @@ function define_task(;Rack=1)
             :Weight => Weight,
             :BoxN => BoxN,
             :Prwd1 => Prwd1,
-            :Prwd2 => Prwd2,
             :Psw1 => Psw1,
+            :Prwd2 => Prwd2,
             :Psw2 => Psw2,
             :Delta => Delta,
             :Barrier => Barrier,
@@ -70,11 +70,60 @@ function define_task(;Rack=1)
     return wdg
 end;
 
-# function launch_task()
-#     L = button(label = "Launch")
-#     x = define_task()
-#     Observables.@map! output begin
-#         &btn
-# end
-# x = define_task()
-# x[].MouseID
+function control_task(FT)
+    Start = button(label = "Start")
+    Stop = button(label = "Stop")
+    Interact.@on begin
+        &Start
+        running!(FT.BoxN, true)
+        t = @spawnat 2 run_task(FT)
+    end
+    Interact.@on begin
+        &Stop
+        running!(FT.BoxN, false)
+    end
+    wdg = Widget{:Control_task}(OrderedDict(
+        :Start => Start,
+        :Stop => Stop,
+        :Task => FT
+    ))
+    @layout! wdg Widgets.div(
+        vbox(
+            hbox(:Start,hskip(1em),:Stop),
+            describe_task(FT)
+            )
+        )
+    body!(Window(),wdg)
+    return wdg
+end
+
+##
+function describe_task(FT)
+    list = fieldnames(Flipping_Task)
+    v = [[x,getfield(FT,x)] for x in list]
+    TextColumn(v)
+end
+
+function TextColumn(FieldName::Symbol,FieldValue)
+    FName = string(FieldName)*":"
+    FValue = string(FieldValue)
+    NameDiv = dom"div"(FName)(style("font-weight" => "bold"))
+    ValDiv = dom"div"(FValue)
+    unit =  container([NameDiv,ValDiv])(style("display" => "flex", "flex-direction"=>"row"))
+    CSSUtil.pad(10px, unit)
+    # return dom"div"(unit)(style("flex-direction"=>"column"))
+end
+
+function TextColumn(v::AbstractVector{Any})
+    if length(v) == 2
+        return TextColumn(v...)
+    else
+        println("Too many valuse in this field")
+        return nothing
+    end
+end
+
+function TextColumn(StringArray)
+    v = TextColumn.(StringArray)
+    vbox(v...)
+end

@@ -1,21 +1,20 @@
+const boxesrunning = falses(8)
 
 function session_specs(FT::Flipping_Task)
-    sp = [string(FT.box),
+    sp = [string(FT.BoxN),
     string(FT.Prwd1),
-    string(FT.Prwd2),
     string(FT.Psw1),
+    string(FT.Prwd2),
     string(FT.Psw2),
-    string(FT.delta),
-    string(Int64(FT.barrier)),
-    string(Int64(FT.stimulation)),
-    string(Int64(FT.pokestracking))]
+    string(FT.Delta),
+    string(Int64(FT.Barrier)),
+    string(Int64(FT.Stimulation)),
+    string(Int64(FT.PokesTracking))]
     join(string.('<',sp,'>'))
 end
 
-const boxesrunning = falses(8)
-
 function run_task(FT::Flipping_Task)
-    port = SerialPort(Box_dict[FT.box])
+    port = SerialPort(Box_dict[FT.BoxN])
     file = FT.filename
 
     if !port.open
@@ -37,11 +36,11 @@ function run_task(FT::Flipping_Task)
     # end
 
     @async begin
-        while boxesrunning[FT.box]
+        while boxesrunning[FT.BoxN]
           if bytesavailable(port) > 0
             m = readuntil(port, '\n', 0.5)
              if occursin("-666",m)
-                 println("All is well in $(FT.box)")
+                 println("All is well in $(FT.BoxN)")
              end
             open(FT.filename, "a") do io
                 print(io, m)
@@ -50,7 +49,7 @@ function run_task(FT::Flipping_Task)
           sleep(0.001)
         end
         close(port)
-        println("Box $(FT.box) port closed")
+        println("Box $(FT.BoxN) port closed")
     end
 end
 

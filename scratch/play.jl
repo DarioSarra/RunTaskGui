@@ -46,11 +46,11 @@ for spec in session_specs(FT)
     sleep(0.5)
 end
 @async begin
-    while boxesrunning[FT.box]
+    while boxesrunning[FT.BoxN]
       if bytesavailable(port) > 0
         m = readuntil(port, '\n', 0.5)
          if occursin("-666",m)
-             println("All is well in $(FT.box)")
+             println("All is well in $(FT.BoxN)")
          end
         open(FT.filename, "a") do io
             print(io, m)
@@ -59,5 +59,5 @@ end
       sleep(0.001)
     end
     close(port)
-    println("Box $(FT.box) port closed")
+    println("Box $(FT.BoxN) port closed")
 end
