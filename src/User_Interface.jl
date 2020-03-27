@@ -1,34 +1,50 @@
 function define_task(;Rack=1)
+    Prepare = button("Prepare task")
     RackBoxes = Dict(1=>1:4,2=>5:8)
     MouseID = textbox()
     Daily_session = dropdown(["morning","evening"])
     Weight = spinbox(1:50,value = 20)
     BoxN  = spinbox(RackBoxes[Rack])
     Prwd1 = spinbox(0:100,value = 60)
-    Prwd2 = spinbox(0:100,value = 60)
     Psw1 = spinbox(0:100,value = 30)
-    Psw2 = spinbox(0:100,value = 30)
-    Delta = spinbox(0:100,value = 0)
+
+    Alt_Prwd2 = spinbox(0:100,value = 60)
+    Alt_Psw2 = spinbox(0:100,value = 30)
+    Alt_Delta = spinbox(0:100,value = 0)
+    c = hbox(vbox("Protocol 2",vbox("P Reward",Alt_Prwd2,"P switch",Alt_Psw2)),
+        hskip(1em),
+        vbox(vskip(2em),"Delta",Alt_Delta))
+    t = togglecontent(c);
+
+    Prwd2 = Interact.@map !&t ? &Prwd1 : &Alt_Prwd2
+    Psw2 = Interact.@map !&t ? &Psw1 : &Alt_Psw2
+    Delta = Interact.@map !&t ? 0 : &Alt_Delta
+
     Barrier = checkbox(value = true)
     Stimulation = checkbox(value = false)
     PokesTracking = checkbox(value = false)
+    output = Observable{Flipping_Task}(Flipping_Task(missing))
 
-    output = Interact.@map Flipping_Task(&MouseID,
-        &Daily_session,
-        &Weight,
-        &BoxN,
-        &Prwd1,
-        &Psw1,
-        &Prwd2,
-        &Psw2,
-        &Delta,
-        &Barrier,
-        &Stimulation,
-        &PokesTracking
-    )
+    Interact.@map! output begin
+        &Prepare
+        Flipping_Task(&MouseID,
+            &Daily_session,
+            &Weight,
+            &BoxN,
+            &Prwd1,
+            &Psw1,
+            &Prwd2,
+            &Psw2,
+            &Delta,
+            &Barrier,
+            &Stimulation,
+            &PokesTracking
+        )
+    end
 
     wdg = Widget{:Task_attributes}(
-        OrderedDict(:MouseID => MouseID,
+        OrderedDict(:Prepare => Prepare,
+            :MouseID => MouseID,
             :Daily_session => Daily_session,
             :Weight => Weight,
             :BoxN => BoxN,
@@ -52,9 +68,8 @@ function define_task(;Rack=1)
                 vskip(1em),
                 hbox(vbox("Protocol 1",vbox("P Reward",:Prwd1,"P switch",:Psw1)),
                     hskip(1em),
-                    vbox("Protocol 2",vbox("P Reward",:Prwd2,"P switch",:Psw2)),
-                    hskip(1em),
-                    vbox("Delta",:Delta)
+                    #vbox("Protocol 2",vbox("P Reward",:Prwd2,"P switch",:Psw2)),
+                    t
                     ),
                 vskip(1em),
                 hbox(vbox("Barrier",:Barrier),
@@ -63,7 +78,9 @@ function define_task(;Rack=1)
                     hskip(1em),
                     vbox("Pokes Tracking",:PokesTracking)
                     )
-                )
+                ),
+                hskip(1em),
+                :Prepare
             )
         )
     body!(Window(),wdg)
