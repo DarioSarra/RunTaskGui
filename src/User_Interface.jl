@@ -87,27 +87,44 @@ function define_task(;Rack=1)
     return wdg
 end;
 
+function control_task(FT::Widget{:Task_attributes,Flipping_Task})
+    control_task(FT[])
+end
+
 function control_task(FT)
     Start = button(label = "Start")
     Stop = button(label = "Stop")
     Interact.@on begin
         &Start
         running!(FT.BoxN, true)
-        t = @spawnat 2 run_task(FT)
+        task = @spawnat 2 run_task(FT)
     end
     Interact.@on begin
         &Stop
         running!(FT.BoxN, false)
     end
+    plt = Observable(plot(rand(10)))
+	tim = Timer(3)
+    timer = run_timer(tim)
+	Interact.@map! plt begin
+		&tim.elapsed
+		# plot(rand(10))
+		plot_routine2(FT)
+	end
+
     wdg = Widget{:Control_task}(OrderedDict(
         :Start => Start,
         :Stop => Stop,
-        :Task => FT
+        :Task => FT,
+        :Plot => plt
     ))
     @layout! wdg Widgets.div(
-        vbox(
-            hbox(:Start,hskip(1em),:Stop),
-            describe_task(FT)
+        hbox(
+            vbox(
+                hbox(:Start,hskip(1em),:Stop),
+                describe_task(FT)
+                ),
+                :Plot
             )
         )
     body!(Window(),wdg)
@@ -116,7 +133,8 @@ end
 
 ##
 function describe_task(FT)
-    list = fieldnames(Flipping_Task)
+    list = collect(fieldnames(Flipping_Task))
+    filter!(x->x!=:filename,list)
     v = [[x,getfield(FT,x)] for x in list]
     TextColumn(v)
 end

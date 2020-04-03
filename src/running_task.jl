@@ -1,5 +1,10 @@
 const boxesrunning = falses(8)
 
+#function take the runing state of the BoxN from process 2
+running(BoxN) = @fetchfrom 2 boxesrunning[BoxN]
+#function change the runing state of the BoxN from process 2
+running!(BoxN, val) = @fetchfrom 2 boxesrunning[BoxN] = val
+
 function session_specs(FT::Flipping_Task)
     sp = [string(FT.BoxN),
     string(FT.Prwd1),
@@ -29,11 +34,6 @@ function run_task(FT::Flipping_Task)
     sleep(0.5)
     write(port,session_specs(FT))
     sleep(1)
-
-    # for spec in session_specs(FT)
-    #     send_m(port,spec,file)
-    #     read_m(port,file)
-    # end
 
     @async begin
         while boxesrunning[FT.BoxN]
