@@ -21,7 +21,7 @@ function run_clock(c::Clock)
     end
 end
 
-function stop_clock(c::Clock)
+function stop_clock!(c::Clock)
     c.running = false
 end
 
@@ -61,4 +61,8 @@ function run_timer(timer::Timer)
             yield()
         end
     end
+end
+
+function stop_timer!(timer::Timer)
+    timer.clock.running = false
 end

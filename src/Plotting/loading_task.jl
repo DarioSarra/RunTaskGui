@@ -15,10 +15,12 @@ const Task_FileDict = Dict("Reward"=> Bool,
 
 function collect_task_data(FT::Flipping_Task)
     if isfile(FT.filename)
-        df = read(FT.filename; skipto = 12, header= Task_header, types = Task_FileDict)
+        df = read(FT.filename; skipto = 12, header= Task_header, types = Task_FileDict) |> DataFrame
         if size(df,1) > 0
-            lastpokeout = df[end,:PokeOut]/1000
-            return filter(row -> row[:PokeIn]/1000 > lastpokeout-20, df)
+            dropmissing!(df)
+            # lastpokeout = df[end,:PokeOut]/1000
+            # return filter(row -> row[:PokeIn]/1000 > lastpokeout-20, df)
+            return df
         else
             return nothing
         end

@@ -61,7 +61,7 @@ function protocol_annotate!(p,r::DataFrames.DataFrameRow)
             t = "H"
         end
         x = start + (Width/2)
-        annotate!([(x, y, Plots.text(t, 8, :red, :center))])
+        annotate!([(x, y, Plots.text(t, 8, :center))])
     end
 end
 

@@ -11,9 +11,9 @@ function define_task(;Rack=1)
     Alt_Prwd2 = spinbox(0:100,value = 60)
     Alt_Psw2 = spinbox(0:100,value = 30)
     Alt_Delta = spinbox(0:100,value = 0)
-    c = hbox(vbox("Protocol 2",vbox("P Reward",Alt_Prwd2,"P switch",Alt_Psw2)),
+    c = hbox(vbox("High Protocol",vbox("P Reward",Alt_Prwd2,"P switch",Alt_Psw2)),
         hskip(1em),
-        vbox(vskip(2em),"Delta",Alt_Delta))
+        vbox(vskip(17pt),"Delta",Alt_Delta))
     t = togglecontent(c);
 
     Prwd2 = Interact.@map !&t ? &Prwd1 : &Alt_Prwd2
@@ -40,6 +40,12 @@ function define_task(;Rack=1)
             &Stimulation,
             &PokesTracking
         )
+	end
+
+	Interact.@on begin
+        &Prepare
+		println("spawning at 1")
+        control_task(output[])
     end
 
     wdg = Widget{:Task_attributes}(
@@ -66,7 +72,7 @@ function define_task(;Rack=1)
                 vskip(1em),
                 hbox(vbox("Daily Session",:Daily_session),hskip(1em),vbox("Weight",:Weight)),
                 vskip(1em),
-                hbox(vbox("Protocol 1",vbox("P Reward",:Prwd1,"P switch",:Psw1)),
+                hbox(vbox(vskip(27pt),"Low Protocol",vbox("P Reward",:Prwd1,"P switch",:Psw1)),
                     hskip(1em),
                     #vbox("Protocol 2",vbox("P Reward",:Prwd2,"P switch",:Psw2)),
                     t
@@ -99,18 +105,21 @@ function control_task(FT)
         running!(FT.BoxN, true)
         task = @spawnat 2 run_task(FT)
     end
-    Interact.@on begin
-        &Stop
-        running!(FT.BoxN, false)
-    end
     plt = Observable(plot(rand(10)))
-	tim = Timer(3)
+	tim = Timer(1)
     timer = run_timer(tim)
+	
 	Interact.@map! plt begin
 		&tim.elapsed
 		# plot(rand(10))
-		plot_routine2(FT)
+		plot_routine(FT)
 	end
+
+	Interact.@on begin
+        &Stop
+        running!(FT.BoxN, false)
+		stop_timer!(tim)
+    end
 
     wdg = Widget{:Control_task}(OrderedDict(
         :Start => Start,
